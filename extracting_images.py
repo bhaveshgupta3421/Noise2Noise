@@ -3,7 +3,7 @@ import tensorflow as tf
 import cv2
 import numpy as np
 
-dir_path = 'dataset\\train'
+dir_path = 'dataset\\images'
 
 images_path = [os.path.join(dir_path, i) for i in os.listdir(dir_path)]
 
@@ -21,9 +21,9 @@ def load_image(img_path):
 
 writer = tf.io.TFRecordWriter('dataset\dataset.tfrecords')
     
-for (idx, imgname) in enumerate(images_path):
-    print (idx, imgname)
-    image = load_image(imgname)
+for (idx, path) in enumerate(images_path[:100]):
+    print (idx, path)
+    image = load_image(path)
     feature = {
         'shape': _int64_feature(image.shape),
         'data': _byte_feature(tf.compat.as_bytes(image.tobytes()))

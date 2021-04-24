@@ -23,46 +23,51 @@ def DeconvBlock():
 
     return wrapper
 
-input_ = tf.keras.Input(shape=(256,256,1))
+def UNet():
+    input_ = tf.keras.Input(shape=(256,256,3))
 
-x = ConvBlock(16, 3, '1a')(input_)
-x = ConvBlock(16, 3, '1b')(x)
-x = MaxPool2D(name = "max_pool_1")(x)
+    x = ConvBlock(16, 3, '1a')(input_)
+    x = ConvBlock(16, 3, '1b')(x)
+    x = MaxPool2D(name = "max_pool_1")(x)
+    
+    x = ConvBlock(32, 3, '2a')(x)
+    x = ConvBlock(32, 3, '2b')(x)
+    x = MaxPool2D(name = "max_pool_2")(x)
+    
+    x = ConvBlock(64, 3, '3a')(x)
+    x = ConvBlock(64, 3, '3b')(x)
+    x = MaxPool2D(name = "max_pool_3")(x)
+    
+    x = ConvBlock(128, 3, '4a')(x)
+    x = ConvBlock(128, 3, '4b')(x)
+    x = MaxPool2D(name = "max_pool_4")(x)
+    
+    x = ConvBlock(256, 3, '5a')(x)
+    x = ConvBlock(256, 3, '5b')(x)
 
-x = ConvBlock(32, 3, '2a')(x)
-x = ConvBlock(32, 3, '2b')(x)
-x = MaxPool2D(name = "max_pool_2")(x)
+    x.shape
 
-x = ConvBlock(64, 3, '3a')(x)
-x = ConvBlock(64, 3, '3b')(x)
-x = MaxPool2D(name = "max_pool_3")(x)
+    model = models.Model(input_, x)
 
-x = ConvBlock(128, 3, '4a')(x)
-x = ConvBlock(128, 3, '4b')(x)
-x = MaxPool2D(name = "max_pool_4")(x)
+    skip_connection_layers = ['relu_4b','relu_3b', 'relu_2b', 'relu_1b']
+    skips = ([model.get_layer(name=i).output for i in skip_connection_layers])
+    
+    filters = [128, 64, 32, 16]
+    
+    input_ = model.input
+    x = model.output
+    
+    for i in range(len(skip_connection_layers)):
+        skip = skips[i]        
+        x = DeconvBlock()(x, filters = filters[i], skip=skip, step = i)
+        
+    x = Conv2D(3, 3, padding='same', name='final')(x)
 
-x = ConvBlock(256, 3, '5a')(x)
-x = ConvBlock(256, 3, '5b')(x)
+    unet_model = models.Model(input_, x)
 
-x.shape
+    unet_model.summary()
 
-model = models.Model(input_, x)
-model.summary()
+    dot_img_file = 'model_1.png'
+    utils.plot_model(unet_model, to_file=dot_img_file, show_shapes=True)
 
-skip_connection_layers = ['relu_4b','relu_3b', 'relu_2b', 'relu_1b']
-skips = ([model.get_layer(name=i).output for i in skip_connection_layers])
-
-filters = [128, 64, 32, 16]
-
-input_ = model.input
-x = model.output
-
-for i in range(len(skip_connection_layers)):
-    skip = skips[i]        
-    x = DeconvBlock()(x, filters = filters[i], skip=skip, step = i)
-
-unet_model = models.Model(input_, x)
-
-dot_img_file = 'model_1.png'
-utils.plot_model(unet_model, to_file=dot_img_file, show_shapes=True)
-
+    return unet_model
