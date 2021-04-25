@@ -67,7 +67,7 @@ def UNet():
 
     unet_model.summary()
 
-    dot_img_file = 'model_1.png'
+    dot_img_file = 'UNet_Architecture.png'
     utils.plot_model(unet_model, to_file=dot_img_file, show_shapes=True)
 
     return unet_model
