@@ -7,6 +7,8 @@ dir_path = 'dataset\\images'
 
 images_path = [os.path.join(dir_path, i) for i in os.listdir(dir_path)]
 
+DATASET_SIZE = len(images_path)
+
 def _int64_feature(v):
     return tf.train.Feature(int64_list=tf.train.Int64List(value=v))
 
